@@ -24,6 +24,3 @@ We should provide a status page that that can be displayed that shows the repo, 
 ### How do we handle Repositories with Submodules?
 I think we can ignore the fact that they have submodules.
 This may lead to a point where a repo that depends on a submodule that has never been backed up would be unable to build
-
-## Decision Log
-1. We will start by having a goroutine that can be aborted before adding too much infra
