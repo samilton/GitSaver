@@ -149,8 +149,9 @@ func backupRepository(event github.WebhookPayload, logger *zap.Logger) error {
 
 	_, err := git.PlainClone(backupDir, false, &git.CloneOptions{
 		URL: event.Repository.CloneURL,
-		Auth: &githttp.TokenAuth{
-			Token: token,
+		Auth: &githttp.BasicAuth{
+			Username: "x-access-token",
+			Password: token,
 		},
 		Progress: os.Stdout,
 	})
