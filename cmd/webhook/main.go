@@ -22,6 +22,7 @@ import (
 
 var logger *zap.Logger
 var sugar *zap.SugaredLogger
+var token string
 
 func initLogger() {
 	// Create a production logger configuration
@@ -143,20 +144,13 @@ func backupRepository(event github.WebhookPayload, logger *zap.Logger) error {
 	}
 	logger.Info("created backup directory")
 
-	// Get GitHub token for authentication
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		return fmt.Errorf("GITHUB_TOKEN environment variable not set")
-	}
-
 	// Clone the repository
 	logger.Info("starting repository clone")
 
 	_, err := git.PlainClone(backupDir, false, &git.CloneOptions{
 		URL: event.Repository.CloneURL,
-		Auth: &githttp.BasicAuth{
-			Username: "git", // This can be anything except empty
-			Password: token,
+		Auth: &githttp.TokenAuth{
+			Token: token,
 		},
 		Progress: os.Stdout,
 	})
@@ -187,11 +181,28 @@ func verifySignature(payload []byte, signature string, secret string) bool {
 }
 
 func main() {
+	appID := int64(1044603)
+	installationID := int64(56702972)
+	privateKeyPath := "private-key.pem"
 
 	initLogger()
 	defer logger.Sync()
 
 	logger.Info("starting application")
+	app, err := github.NewGitHubApp(appID, installationID, privateKeyPath)
+	if err != nil {
+		logger.Fatal("failed to create GitHub app",
+			zap.Error(err),
+		)
+	}
+
+	token, err = app.GetInstallationToken()
+	if err != nil {
+		logger.Fatal("failed to get installation token",
+			zap.Error(err),
+		)
+	}
+	logger.Info("Got installation token", zap.String("token", token))
 
 	if err := os.MkdirAll("backups", 0755); err != nil {
 		logger.Fatal("failed to create backups directory",
