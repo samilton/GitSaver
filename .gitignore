@@ -1,2 +1,4 @@
 bin/
 backups/
+config.toml
+private-key.pem
