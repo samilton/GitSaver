@@ -17,26 +17,6 @@ import (
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
-// PushEvent represents the webhook payload for a push event
-type PushEvent struct {
-	Ref        string `json:"ref"`
-	Repository struct {
-		Name     string `json:"name"`
-		CloneURL string `json:"clone_url"`
-		Owner    struct {
-			Name string `json:"name"`
-		} `json:"owner"`
-	} `json:"repository"`
-	Commits []struct {
-		ID      string `json:"id"`
-		Message string `json:"message"`
-		Author  struct {
-			Name  string `json:"name"`
-			Email string `json:"email"`
-		} `json:"author"`
-	} `json:"commits"`
-}
-
 func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	// Verify HTTP method
 	if r.Method != http.MethodPost {
@@ -152,7 +132,7 @@ func verifySignature(payload []byte, signature string, secret string) bool {
 }
 
 func main() {
-	// Ensure backups directory exists
+	appID := int64(YOUR_APP_ID)
 	if err := os.MkdirAll("backups", 0755); err != nil {
 		fmt.Printf("Failed to create backups directory: %v\n", err)
 		return
