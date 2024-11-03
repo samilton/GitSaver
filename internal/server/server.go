@@ -126,6 +126,14 @@ func (s *Server) handleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) backupRepository(event github.WebhookPayload, logger *zap.Logger) error {
+	// Validate repository owner and name to prevent directory traversal
+	if strings.Contains(event.Repository.Owner.Name, "/") || strings.Contains(event.Repository.Owner.Name, "\\") || strings.Contains(event.Repository.Owner.Name, "..") {
+		return fmt.Errorf("invalid repository owner name: %s", event.Repository.Owner.Name)
+	}
+	if strings.Contains(event.Repository.Name, "/") || strings.Contains(event.Repository.Name, "\\") || strings.Contains(event.Repository.Name, "..") {
+		return fmt.Errorf("invalid repository name: %s", event.Repository.Name)
+	}
+
 	// Create backup directory with timestamp
 	timestamp := time.Now().Format("20060102_150405")
 	backupDir := filepath.Join(s.cfg.Backups.Directory, event.Repository.Owner.Name,
